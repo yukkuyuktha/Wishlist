@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Wishlist</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F7F4EF;--sur:#fff;--s2:#F0EDE8;--bor:#E2DDD7;
+  --txt:#1A1714;--mut:#7A736A;
+  --acc:#C4541A;--al:#FAE8DC;
+  --gr:#2D6A4F;--gl:#D8EDDF;
+  --rad:14px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:90px}
+
+/* ── setup screen ── */
+#setup{padding:24px 20px;max-width:520px;margin:0 auto}
+.setup-logo{font-family:'Instrument Serif',serif;font-size:28px;letter-spacing:-.5px;margin-bottom:4px}
+.setup-logo em{color:var(--acc);font-style:italic}
+.setup-sub{font-size:14px;color:var(--mut);margin-bottom:28px}
+.step{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rad);padding:18px;margin-bottom:14px}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:600;margin-bottom:10px}
+.step h3{font-size:15px;font-weight:600;margin-bottom:6px}
+.step p{font-size:13px;color:var(--mut);line-height:1.6;margin-bottom:12px}
+.step a{color:var(--acc);text-decoration:none;font-weight:500}
+.step a:hover{text-decoration:underline}
+.inp{width:100%;background:var(--s2);border:1.5px solid var(--bor);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--txt);outline:none;margin-bottom:0}
+.inp:focus{border-color:var(--acc);background:#fff}
+.inp::placeholder{color:#B5AFA9}
+.save-btn{width:100%;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:16px}
+.save-btn:active{opacity:.85}
+.err-msg{font-size:13px;color:#B91C1C;background:#FEE2E2;border-radius:8px;padding:10px 14px;margin-top:12px;display:none}
+.code-hint{font-size:12px;background:var(--s2);border-radius:6px;padding:6px 10px;font-family:monospace;color:var(--txt);word-break:break-all;margin-top:8px;border:1px solid var(--bor)}
+
+/* ── main app ── */
+#app{display:none}
+header{background:var(--sur);border-bottom:1px solid var(--bor);padding:14px 16px 0;position:sticky;top:0;z-index:100}
+.ht{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.logo{font-family:'Instrument Serif',serif;font-size:23px;letter-spacing:-.5px}
+.logo em{color:var(--acc);font-style:italic}
+.hright{display:flex;align-items:center;gap:8px}
+.badge{font-size:11px;color:var(--mut);background:var(--s2);border-radius:20px;padding:4px 10px;font-weight:500;display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background .3s}
+.dot.ok{background:#22c55e}
+.dot.err{background:#ef4444}
+.dot.busy{background:#f59e0b;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.settings-btn{background:none;border:1px solid var(--bor);border-radius:8px;padding:4px 9px;font-size:12px;color:var(--mut);cursor:pointer;font-family:'DM Sans',sans-serif}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:8px 11px;border-radius:9px 9px 0 0;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--mut);font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;border-bottom:2px solid transparent}
+.tab.on{color:var(--acc);border-bottom:2px solid var(--acc);font-weight:600}
+.cnt{background:var(--s2);color:var(--mut);border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.tab.on .cnt{background:var(--acc);color:#fff}
+main{padding:14px 16px;max-width:680px;margin:0 auto}
+.acard{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rad);padding:16px;margin-bottom:16px}
+.acard-title{font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.fi{width:100%;background:var(--s2);border:1.5px solid var(--bor);border-radius:10px;padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--txt);outline:none;display:block;margin-bottom:10px;-webkit-appearance:none;appearance:none}
+.fi:focus{border-color:var(--acc);background:#fff}
+.fi::placeholder{color:#B5AFA9}
+textarea.fi{resize:none;height:66px}
+.r2{display:flex;gap:8px;margin-bottom:10px}
+.r2 .fi{margin-bottom:0}
+.pr{display:flex;gap:6px;margin-bottom:10px}
+.pb{flex:1;padding:9px 4px;border-radius:8px;border:1.5px solid var(--bor);background:var(--s2);cursor:pointer;font-size:12px;font-weight:500;color:var(--mut);font-family:'DM Sans',sans-serif;text-align:center;-webkit-appearance:none;touch-action:manipulation}
+.pb.sl{border-color:var(--gr);background:var(--gl);color:var(--gr)}
+.pb.sm{border-color:#B45309;background:#FEF3C7;color:#B45309}
+.pb.sh{border-color:#B91C1C;background:#FEE2E2;color:#B91C1C}
+.addbtn{width:100%;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;-webkit-appearance:none;touch-action:manipulation}
+.addbtn:active{opacity:.85}
+.addbtn:disabled{opacity:.55;cursor:not-allowed}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.sc{background:var(--sur);border:1px solid var(--bor);border-radius:12px;padding:12px;text-align:center}
+.sn{font-family:'Instrument Serif',serif;font-size:24px;color:var(--acc);display:block;line-height:1}
+.sl2{font-size:10px;color:var(--mut);font-weight:500;margin-top:3px;display:block}
+.sw{position:relative;margin-bottom:12px}
+.sw .fi{padding-left:36px;margin-bottom:0}
+.sico{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
+.ic{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rad);padding:13px;margin-bottom:9px;display:flex;gap:11px;position:relative;overflow:hidden;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ic.bgt{opacity:.5}
+.ic.bgt .ititle{text-decoration:line-through}
+.ic::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:var(--rad) 0 0 var(--rad)}
+.ic.pl::before{background:var(--gr)}
+.ic.pm::before{background:#F59E0B}
+.ic.ph::before{background:#EF4444}
+.fwrap{width:40px;height:40px;flex-shrink:0;border-radius:9px;background:var(--s2);border:1px solid var(--bor);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.fwrap img{width:24px;height:24px;object-fit:contain}
+.ff{font-size:18px}
+.ibody{flex:1;min-width:0}
+.ititle{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.iurl{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.inote{font-size:11px;color:var(--mut);margin-bottom:5px;font-style:italic}
+.tgs{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.tg{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px}
+.tc-clothes{background:#EDE9FE;color:#6D28D9}
+.tc-footwear{background:#DBEAFE;color:#1D4ED8}
+.tc-accessories{background:#FCE7F3;color:#9D174D}
+.tc-electronics{background:#D1FAE5;color:#065F46}
+.tc-books{background:#FEF3C7;color:#92400E}
+.tc-home{background:#FFE4E6;color:#9F1239}
+.tc-beauty{background:#FDF2F8;color:#831843}
+.tc-sports{background:#ECFDF5;color:#064E3B}
+.tc-other{background:var(--s2);color:var(--mut)}
+.tdate{font-size:10px;color:var(--mut);margin-left:auto}
+.tprice{font-size:10px;font-weight:600;color:var(--gr);background:var(--gl);padding:2px 7px;border-radius:20px}
+.iacts{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.ab{width:32px;height:32px;border-radius:8px;border:1px solid var(--bor);background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;color:var(--txt);-webkit-appearance:none;touch-action:manipulation}
+.ab.aby{background:var(--gl);border-color:var(--gr);color:var(--gr)}
+.ab.adl{background:#FEE2E2;border-color:#FECACA;color:#DC2626}
+.empty{text-align:center;padding:40px 16px;color:var(--mut)}
+.eico{font-size:42px;margin-bottom:10px}
+.empty h3{font-family:'Instrument Serif',serif;font-size:20px;color:var(--txt);margin-bottom:5px}
+.empty p{font-size:13px}
+.bsep{display:flex;align-items:center;gap:8px;margin:18px 0 9px;color:var(--mut);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.bsep::after{content:'';flex:1;height:1px;background:var(--bor)}
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--txt);color:#fff;padding:9px 18px;border-radius:20px;font-size:12px;font-weight:500;opacity:0;transition:all .22s;z-index:999;white-space:nowrap;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.fab{position:fixed;bottom:20px;right:20px;width:52px;height:52px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:26px;cursor:pointer;box-shadow:0 4px 14px rgba(196,84,26,.4);display:flex;align-items:center;justify-content:center;z-index:200;-webkit-appearance:none;touch-action:manipulation}
+</style>
+</head>
+<body>
+
+<!-- ── SETUP SCREEN ──────────────────────────────────────── -->
+<div id="setup">
+  <div class="setup-logo">wish<em>list</em></div>
+  <p class="setup-sub">Connect your free Supabase database to sync across all devices.</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <h3>Create a free Supabase project</h3>
+    <p>Go to <a href="https://supabase.com" target="_blank">supabase.com</a> → Sign up free → New project → choose any name and region → wait ~1 min for it to load.</p>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <h3>Create the wishlist table</h3>
+    <p>In your project, click <strong>SQL Editor</strong> in the left sidebar, paste this query and click <strong>Run</strong>:</p>
+    <div class="code-hint">create table wishlist (
+  id text primary key,
+  title text,
+  url text,
+  cat text,
+  price text,
+  note text,
+  prio text,
+  bought boolean default false,
+  ts bigint,
+  created_at timestamptz default now()
+);
+alter table wishlist enable row level security;
+create policy "allow all" on wishlist for all using (true) with check (true);</div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <h3>Paste your project credentials</h3>
+    <p>Go to <strong>Project Settings → API</strong>. Copy the <strong>Project URL</strong> and <strong>anon public</strong> key and paste them below.</p>
+    <input class="inp" type="text" id="cfgUrl" placeholder="Project URL — https://xxxx.supabase.co" autocomplete="off" spellcheck="false">
+    <div style="height:10px"></div>
+    <input class="inp" type="text" id="cfgKey" placeholder="anon public key — eyJhbGci..." autocomplete="off" spellcheck="false">
+    <div class="err-msg" id="cfgErr"></div>
+    <button class="save-btn" id="cfgBtn" type="button">Connect & Open Wishlist →</button>
+  </div>
+</div>
+
+<!-- ── MAIN APP ──────────────────────────────────────────── -->
+<div id="app">
+  <header>
+    <div class="ht">
+      <div class="logo">wish<em>list</em></div>
+      <div class="hright">
+        <div class="badge"><span class="dot ok" id="dot"></span><span id="syncTxt">Synced</span></div>
+        <button class="settings-btn" id="resetBtn" type="button">⚙ Settings</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" data-cat="all">All <span class="cnt" id="ca">0</span></button>
+      <button class="tab" data-cat="clothes">👕 Clothes <span class="cnt" id="cc">0</span></button>
+      <button class="tab" data-cat="footwear">👟 Footwear <span class="cnt" id="cf">0</span></button>
+      <button class="tab" data-cat="accessories">💍 Accessories <span class="cnt" id="cac">0</span></button>
+      <button class="tab" data-cat="electronics">📱 Electronics <span class="cnt" id="ce">0</span></button>
+      <button class="tab" data-cat="books">📚 Books <span class="cnt" id="cb">0</span></button>
+      <button class="tab" data-cat="home">🏠 Home <span class="cnt" id="ch">0</span></button>
+      <button class="tab" data-cat="beauty">✨ Beauty <span class="cnt" id="cbe">0</span></button>
+      <button class="tab" data-cat="sports">🏋️ Sports <span class="cnt" id="csp">0</span></button>
+      <button class="tab" data-cat="other">📦 Other <span class="cnt" id="co">0</span></button>
+    </div>
+  </header>
+
+  <main>
+    <div class="acard">
+      <div class="acard-title">+ Add to wishlist</div>
+      <input class="fi" type="text" id="iTitle" placeholder="Product name (e.g. Nike Air Max 270)" autocomplete="off">
+      <input class="fi" type="url" id="iUrl" placeholder="Paste product URL here..." autocomplete="off" inputmode="url">
+      <div class="r2">
+        <select class="fi" id="iCat" style="flex:1.4">
+          <option value="clothes">👕 Clothes</option>
+          <option value="footwear">👟 Footwear</option>
+          <option value="accessories">💍 Accessories</option>
+          <option value="electronics">📱 Electronics</option>
+          <option value="books">📚 Books</option>
+          <option value="home">🏠 Home</option>
+          <option value="beauty">✨ Beauty</option>
+          <option value="sports">🏋️ Sports</option>
+          <option value="other">📦 Other</option>
+        </select>
+        <input class="fi" type="text" id="iPrice" placeholder="Price (₹)" style="flex:1" inputmode="decimal" autocomplete="off">
+      </div>
+      <div class="pr">
+        <button type="button" class="pb sl" data-p="low">🟢 Someday</button>
+        <button type="button" class="pb" data-p="mid">🟡 Want it</button>
+        <button type="button" class="pb" data-p="high">🔴 Need it!</button>
+      </div>
+      <textarea class="fi" id="iNote" placeholder="Notes — size, color, wait for sale..."></textarea>
+      <button type="button" class="addbtn" id="addBtn">Save to Wishlist</button>
+    </div>
+
+    <div class="stats" id="statsRow" style="display:none">
+      <div class="sc"><span class="sn" id="stT">0</span><span class="sl2">Total</span></div>
+      <div class="sc"><span class="sn" id="stB">0</span><span class="sl2">Bought</span></div>
+      <div class="sc"><span class="sn" id="stH">0</span><span class="sl2">Need it!</span></div>
+    </div>
+    <div class="sw" id="sWrap" style="display:none">
+      <span class="sico">🔍</span>
+      <input class="fi" type="search" id="iSearch" placeholder="Search wishlist..." autocomplete="off">
+    </div>
+    <div id="list"><div class="empty"><div class="eico">⏳</div><h3>Loading...</h3></div></div>
+  </main>
+  <button type="button" class="fab" id="fab">+</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────
+const CFG_KEY = 'wl_supabase_cfg';
+let SB_URL = '', SB_KEY = '', items = [], prio = 'low', activeTab = 'all', busy = false;
+
+function loadCfg() {
+  try { return JSON.parse(localStorage.getItem(CFG_KEY) || 'null'); } catch(e) { return null; }
+}
+function saveCfg(url, key) {
+  localStorage.setItem(CFG_KEY, JSON.stringify({ url, key }));
+}
+
+// ── Supabase REST helpers ──────────────────────────────────────────
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(SB_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || '',
+      ...opts.headers
+    }
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || res.status);
+  }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+async function dbLoad() {
+  const rows = await sbFetch('wishlist?order=ts.desc&select=*');
+  return rows || [];
+}
+
+async function dbInsert(item) {
+  await sbFetch('wishlist', {
+    method: 'POST',
+    prefer: 'return=minimal',
+    body: JSON.stringify(item)
+  });
+}
+
+async function dbUpdate(id, patch) {
+  await sbFetch('wishlist?id=eq.' + encodeURIComponent(id), {
+    method: 'PATCH',
+    prefer: 'return=minimal',
+    body: JSON.stringify(patch)
+  });
+}
+
+async function dbDelete(id) {
+  await sbFetch('wishlist?id=eq.' + encodeURIComponent(id), {
+    method: 'DELETE'
+  });
+}
+
+// ── Setup screen ───────────────────────────────────────────────────
+document.getElementById('cfgBtn').addEventListener('click', async function() {
+  const url = document.getElementById('cfgUrl').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('cfgKey').value.trim();
+  const err = document.getElementById('cfgErr');
+  err.style.display = 'none';
+
+  if (!url.startsWith('https://') || !url.includes('supabase')) {
+    err.textContent = 'That doesn\'t look like a Supabase URL. It should start with https:// and contain supabase.co';
+    err.style.display = 'block'; return;
+  }
+  if (key.length < 20) {
+    err.textContent = 'The API key looks too short. Copy the full anon public key from Settings → API.';
+    err.style.display = 'block'; return;
+  }
+
+  this.disabled = true;
+  this.textContent = 'Testing connection...';
+
+  SB_URL = url; SB_KEY = key;
+
+  try {
+    await dbLoad();
+    saveCfg(url, key);
+    startApp();
+  } catch(e) {
+    err.textContent = 'Could not connect: ' + e.message + '. Double-check the URL and key, and make sure you ran the SQL setup.';
+    err.style.display = 'block';
+    this.disabled = false;
+    this.textContent = 'Connect & Open Wishlist →';
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', function() {
+  if (confirm('Disconnect from Supabase and go back to setup?')) {
+    localStorage.removeItem(CFG_KEY);
+    location.reload();
+  }
+});
+
+// ── Boot ────────────────────────────────────────────────────────────
+(function boot() {
+  const cfg = loadCfg();
+  if (cfg && cfg.url && cfg.key) {
+    SB_URL = cfg.url; SB_KEY = cfg.key;
+    startApp();
+  }
+})();
+
+async function startApp() {
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  setSync('busy', 'Loading...');
+  try {
+    items = await dbLoad();
+    setSync('ok', 'Synced ✓');
+  } catch(e) {
+    setSync('err', 'Load failed');
+    toast('⚠️ Could not load — check connection');
+  }
+  render();
+  bindEvents();
+}
+
+// ── Events ──────────────────────────────────────────────────────────
+function bindEvents() {
+  document.querySelectorAll('.pb').forEach(b => {
+    b.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.pb').forEach(x => x.className = 'pb');
+      prio = this.dataset.p;
+      this.classList.add(prio === 'low' ? 'sl' : prio === 'mid' ? 'sm' : 'sh');
+    });
+  });
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+      this.classList.add('on');
+      activeTab = this.dataset.cat;
+      render();
+    });
+  });
+  document.getElementById('addBtn').addEventListener('click', doAdd);
+  document.getElementById('iSearch').addEventListener('input', render);
+  document.getElementById('fab').addEventListener('click', () => {
+    document.getElementById('addBtn').closest('.acard').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => document.getElementById('iUrl').focus(), 300);
+  });
+}
+
+// ── Add ─────────────────────────────────────────────────────────────
+async function doAdd() {
+  if (busy) return;
+  const url = document.getElementById('iUrl').value.trim();
+  if (!url) { toast('⚠️ Please paste a product URL'); return; }
+
+  const item = {
+    id: Date.now() + '' + Math.floor(Math.random() * 9999),
+    title: document.getElementById('iTitle').value.trim() || dom(url) || 'Saved item',
+    url,
+    cat: document.getElementById('iCat').value,
+    price: document.getElementById('iPrice').value.trim(),
+    note: document.getElementById('iNote').value.trim(),
+    prio,
+    bought: false,
+    ts: Date.now()
+  };
+
+  busy = true;
+  const btn = document.getElementById('addBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  setSync('busy', 'Saving...');
+
+  // Optimistic UI
+  items.unshift(item);
+  render();
+
+  try {
+    await dbInsert(item);
+    setSync('ok', 'Saved ✓');
+    toast('✓ Saved to wishlist!');
+  } catch(e) {
+    // rollback
+    items = items.filter(x => x.id !== item.id);
+    render();
+    setSync('err', 'Save failed');
+    toast('⚠️ Save failed — check your connection');
+  }
+
+  busy = false; btn.disabled = false; btn.textContent = 'Save to Wishlist';
+  document.getElementById('iTitle').value = '';
+  document.getElementById('iUrl').value = '';
+  document.getElementById('iPrice').value = '';
+  document.getElementById('iNote').value = '';
+}
+
+// ── Toggle bought ────────────────────────────────────────────────────
+window.toggleBought = async function(id) {
+  const item = items.find(x => x.id === id); if (!item) return;
+  const prev = item.bought;
+  item.bought = !prev;
+  render();
+  setSync('busy', 'Saving...');
+  try {
+    await dbUpdate(id, { bought: item.bought });
+    setSync('ok', 'Synced ✓');
+  } catch(e) {
+    item.bought = prev; render();
+    setSync('err', 'Update failed');
+    toast('⚠️ Update failed');
+  }
+};
+
+// ── Delete ───────────────────────────────────────────────────────────
+window.delItem = async function(id) {
+  if (!confirm('Remove this item?')) return;
+  const prev = [...items];
+  items = items.filter(x => x.id !== id);
+  render();
+  setSync('busy', 'Deleting...');
+  try {
+    await dbDelete(id);
+    setSync('ok', 'Synced ✓');
+    toast('Removed');
+  } catch(e) {
+    items = prev; render();
+    setSync('err', 'Delete failed');
+    toast('⚠️ Delete failed');
+  }
+};
+
+// ── Helpers ──────────────────────────────────────────────────────────
+function setSync(state, txt) {
+  document.getElementById('dot').className = 'dot ' + (state === 'busy' ? 'busy' : state === 'err' ? 'err' : 'ok');
+  document.getElementById('syncTxt').textContent = txt;
+}
+function dom(u) { try { return new URL(u).hostname.replace('www.', ''); } catch(e) { return ''; } }
+function fav(u) { const d = dom(u); return d ? 'https://www.google.com/s2/favicons?domain=' + d + '&sz=64' : ''; }
+const EM = { clothes:'👕', footwear:'👟', accessories:'💍', electronics:'📱', books:'📚', home:'🏠', beauty:'✨', sports:'🏋️', other:'📦' };
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('en-IN', { day:'numeric', month:'short' }); }
+function toast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('on');
+  clearTimeout(t._); t._ = setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+// ── Render ───────────────────────────────────────────────────────────
+function render() {
+  const q = (document.getElementById('iSearch') ? document.getElementById('iSearch').value : '').toLowerCase();
+  const pend = items.filter(i => !i.bought);
+
+  document.getElementById('ca').textContent = pend.length;
+  [['cc','clothes'],['cf','footwear'],['cac','accessories'],['ce','electronics'],
+   ['cb','books'],['ch','home'],['cbe','beauty'],['csp','sports'],['co','other']
+  ].forEach(([elId, cat]) => {
+    const el = document.getElementById(elId);
+    if (el) el.textContent = pend.filter(i => i.cat === cat).length;
+  });
+
+  const has = items.length > 0;
+  document.getElementById('statsRow').style.display = has ? 'grid' : 'none';
+  document.getElementById('sWrap').style.display = has ? 'block' : 'none';
+  if (has) {
+    document.getElementById('stT').textContent = items.length;
+    document.getElementById('stB').textContent = items.filter(i => i.bought).length;
+    document.getElementById('stH').textContent = items.filter(i => i.prio === 'high' && !i.bought).length;
+  }
+
+  const po = { high:0, mid:1, low:2 };
+  const fil = items.filter(i => {
+    if (activeTab !== 'all' && i.cat !== activeTab) return false;
+    if (q && !i.title.toLowerCase().includes(q) && !dom(i.url).includes(q) && !(i.note||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const act = fil.filter(i => !i.bought).sort((a,b) => po[a.prio] - po[b.prio] || b.ts - a.ts);
+  const bgt = fil.filter(i => i.bought);
+
+  if (!fil.length) {
+    document.getElementById('list').innerHTML = '<div class="empty"><div class="eico">' + (items.length ? '🔍' : '🛍️') + '</div><h3>' + (items.length ? 'Nothing here' : 'Wishlist is empty') + '</h3><p>' + (items.length ? 'Try another tab' : 'Add your first item above!') + '</p></div>';
+    return;
+  }
+
+  let html = act.map(mkCard).join('');
+  if (bgt.length) html += '<div class="bsep">✓ Already bought (' + bgt.length + ')</div>' + bgt.map(mkCard).join('');
+  document.getElementById('list').innerHTML = html;
+}
+
+function mkCard(i) {
+  const d = dom(i.url), f = fav(i.url);
+  const pt = { low:'Someday', mid:'Want it', high:'Need it!' }[i.prio] || 'Someday';
+  const ps = { low:'background:#D8EDDF;color:#2D6A4F', mid:'background:#FEF3C7;color:#B45309', high:'background:#FEE2E2;color:#B91C1C' }[i.prio] || '';
+  const pid = i.prio ? i.prio[0] : 'l';
+  return `<div class="ic p${pid}${i.bought ? ' bgt' : ''}">
+<div class="fwrap">${f ? `<img src="${esc(f)}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">` : ''}<span class="ff" style="${f ? 'display:none' : ''}">${EM[i.cat]||'📦'}</span></div>
+<div class="ibody">
+  <div class="ititle">${esc(i.title)}</div>
+  <div class="iurl">${esc(d || i.url)}</div>
+  ${i.note ? `<div class="inote">"${esc(i.note)}"</div>` : ''}
+  <div class="tgs">
+    <span class="tg tc-${i.cat||'other'}">${EM[i.cat]||'📦'} ${i.cat||'other'}</span>
+    <span class="tg" style="${ps}">${pt}</span>
+    ${i.price ? `<span class="tprice">₹${esc(i.price)}</span>` : ''}
+    <span class="tdate">${fmtDate(i.ts)}</span>
+  </div>
+</div>
+<div class="iacts">
+  <a href="${esc(i.url)}" target="_blank" class="ab" style="font-size:15px">🔗</a>
+  <button type="button" class="ab aby" onclick="toggleBought('${esc(i.id)}')">${i.bought ? '↩' : '✓'}</button>
+  <button type="button" class="ab adl" onclick="delItem('${esc(i.id)}')">✕</button>
+</div></div>`;
+}
+</script>
+</body>
+</html>
