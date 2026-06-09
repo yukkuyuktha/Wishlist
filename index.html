@@ -120,6 +120,10 @@ textarea.fi{resize:none;height:66px}
 .toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--txt);color:#fff;padding:9px 18px;border-radius:20px;font-size:12px;font-weight:500;opacity:0;transition:all .22s;z-index:999;white-space:nowrap;pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .fab{position:fixed;bottom:20px;right:20px;width:52px;height:52px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:26px;cursor:pointer;box-shadow:0 4px 14px rgba(196,84,26,.4);display:flex;align-items:center;justify-content:center;z-index:200;-webkit-appearance:none;touch-action:manipulation}
+
+/* ── url warning banner ── */
+.url-warn{display:none;background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:10px 13px;margin-bottom:10px;font-size:12px;color:#92400E;line-height:1.5}
+.url-warn strong{display:block;margin-bottom:2px;font-size:13px}
 </style>
 </head>
 <body>
@@ -196,6 +200,10 @@ create policy "allow all" on wishlist for all using (true) with check (true);</d
       <div class="acard-title">+ Add to wishlist</div>
       <input class="fi" type="text" id="iTitle" placeholder="Product name (e.g. Nike Air Max 270)" autocomplete="off">
       <input class="fi" type="url" id="iUrl" placeholder="Paste product URL here..." autocomplete="off" inputmode="url">
+      <div class="url-warn" id="urlWarn">
+        <strong>⚠️ App link detected</strong>
+        This looks like a short link from the Amazon/Myntra/Flipkart app. These links may not open correctly. For best results, open the product in your browser and copy the URL from the address bar instead.
+      </div>
       <div class="r2">
         <select class="fi" id="iCat" style="flex:1.4">
           <option value="clothes">👕 Clothes</option>
@@ -245,6 +253,38 @@ function loadCfg() {
 }
 function saveCfg(url, key) {
   localStorage.setItem(CFG_KEY, JSON.stringify({ url, key }));
+}
+
+// ── App link detection ─────────────────────────────────────────────
+// These are short/redirect links from shopping apps that may not open correctly
+const APP_LINK_PATTERNS = [
+  /amzn\.in/i,
+  /amzn\.to/i,
+  /dl\.flipkart\.com/i,
+  /fkrt\.it/i,
+  /myntra\.page\.link/i,
+  /meesho\.com\/share/i,
+  /ajio\.com\/share/i,
+  /snapdeal\.com\/share/i,
+  /bit\.ly/i,
+  /tinyurl\.com/i,
+  /t\.co\//i
+];
+
+function isAppLink(url) {
+  if (!url) return false;
+  return APP_LINK_PATTERNS.some(p => p.test(url));
+}
+
+// Opens a URL safely — forces browser open, never opens the app
+function openUrl(url) {
+  // Wrap app/short links via a safe redirect so mobile doesn't intercept them
+  if (isAppLink(url)) {
+    // Use Google's safe redirect to force browser resolution
+    window.open('https://www.google.com/search?q=' + encodeURIComponent(url), '_blank', 'noopener');
+  } else {
+    window.open(url, '_blank', 'noopener');
+  }
 }
 
 // ── Supabase REST helpers ──────────────────────────────────────────
@@ -379,6 +419,19 @@ function bindEvents() {
   });
   document.getElementById('addBtn').addEventListener('click', doAdd);
   document.getElementById('iSearch').addEventListener('input', render);
+
+  // Show warning when user pastes an app link
+  document.getElementById('iUrl').addEventListener('input', function() {
+    const warn = document.getElementById('urlWarn');
+    warn.style.display = isAppLink(this.value.trim()) ? 'block' : 'none';
+  });
+  document.getElementById('iUrl').addEventListener('paste', function() {
+    setTimeout(() => {
+      const warn = document.getElementById('urlWarn');
+      warn.style.display = isAppLink(this.value.trim()) ? 'block' : 'none';
+    }, 50);
+  });
+
   document.getElementById('fab').addEventListener('click', () => {
     document.getElementById('addBtn').closest('.acard').scrollIntoView({ behavior: 'smooth' });
     setTimeout(() => document.getElementById('iUrl').focus(), 300);
@@ -429,6 +482,7 @@ async function doAdd() {
   document.getElementById('iUrl').value = '';
   document.getElementById('iPrice').value = '';
   document.getElementById('iNote').value = '';
+  document.getElementById('urlWarn').style.display = 'none';
 }
 
 // ── Toggle bought ────────────────────────────────────────────────────
@@ -529,11 +583,13 @@ function mkCard(i) {
   const pt = { low:'Someday', mid:'Want it', high:'Need it!' }[i.prio] || 'Someday';
   const ps = { low:'background:#D8EDDF;color:#2D6A4F', mid:'background:#FEF3C7;color:#B45309', high:'background:#FEE2E2;color:#B91C1C' }[i.prio] || '';
   const pid = i.prio ? i.prio[0] : 'l';
+  const appLink = isAppLink(i.url);
+  const linkTitle = appLink ? 'App link — tap to search for product' : 'Open product page';
   return `<div class="ic p${pid}${i.bought ? ' bgt' : ''}">
 <div class="fwrap">${f ? `<img src="${esc(f)}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">` : ''}<span class="ff" style="${f ? 'display:none' : ''}">${EM[i.cat]||'📦'}</span></div>
 <div class="ibody">
   <div class="ititle">${esc(i.title)}</div>
-  <div class="iurl">${esc(d || i.url)}</div>
+  <div class="iurl">${appLink ? '⚠️ ' : ''}${esc(d || i.url)}</div>
   ${i.note ? `<div class="inote">"${esc(i.note)}"</div>` : ''}
   <div class="tgs">
     <span class="tg tc-${i.cat||'other'}">${EM[i.cat]||'📦'} ${i.cat||'other'}</span>
@@ -543,7 +599,7 @@ function mkCard(i) {
   </div>
 </div>
 <div class="iacts">
-  <a href="${esc(i.url)}" target="_blank" class="ab" style="font-size:15px">🔗</a>
+  <button type="button" class="ab" title="${linkTitle}" onclick="openUrl('${esc(i.url)}')" style="font-size:15px">${appLink ? '🔍' : '🔗'}</button>
   <button type="button" class="ab aby" onclick="toggleBought('${esc(i.id)}')">${i.bought ? '↩' : '✓'}</button>
   <button type="button" class="ab adl" onclick="delItem('${esc(i.id)}')">✕</button>
 </div></div>`;
